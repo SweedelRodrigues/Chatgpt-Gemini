@@ -1,0 +1,32 @@
+# ==============================================================================
+# GenAI Cloud Gateway — Render Blueprint Specification (render.yaml)
+# Plan: Render Free Web Service
+# Docs: https://render.com/docs/blueprint-spec
+# ==============================================================================
+
+services:
+  - type: web
+    name: genai-cloud-gateway
+    runtime: python
+    plan: free
+    region: oregon # Default Render region (or ohio, frankfurt, singapore)
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false # Render dashboard prompts for your secret Gemini API key at deploy time
+      - key: GROQ_API_KEY
+        sync: false # Render dashboard prompts for your secret Groq API key at deploy time
+      - key: DEFAULT_MODEL
+        value: gemini-2.5-flash
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b
+      - key: MAX_PROMPT_LENGTH
+        value: "4000"
+      - key: REQUEST_TIMEOUT_SECONDS
+        value: "30.0"
+      - key: APP_ENV
+        value: production
+      - key: PYTHON_VERSION
+        value: 3.11.9

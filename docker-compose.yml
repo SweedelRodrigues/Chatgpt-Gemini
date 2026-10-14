@@ -1,0 +1,27 @@
+# ==============================================================================
+# GenAI Cloud Gateway — Docker Compose Local Orchestration
+# ==============================================================================
+
+version: "3.8"
+
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: genai-cloud-gateway
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DEFAULT_MODEL=${DEFAULT_MODEL:-gemini-2.5-flash}
+      - MAX_PROMPT_LENGTH=${MAX_PROMPT_LENGTH:-4000}
+      - REQUEST_TIMEOUT_SECONDS=${REQUEST_TIMEOUT_SECONDS:-30.0}
+      - APP_ENV=production
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s

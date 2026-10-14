@@ -1,0 +1,50 @@
+# ==============================================================================
+# GenAI Cloud Gateway - Docker Build Exclusion Rules (.dockerignore)
+# Ensures credentials, local caches, tests, and temporary data are NEVER
+# copied into the Docker container image.
+# ==============================================================================
+
+# Secrets and environment files (CRITICAL SECURITY)
+.env
+.env.local
+.env.*
+*.env
+*.key
+*.pem
+*.cert
+*.pfx
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Testing artifacts and test coverage
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+.hypothesis/
+tests/
+
+# Git metadata and IDE settings
+.git/
+.gitignore
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local runtime data and benchmark exports
+*.csv
+*.log
+scratch/
+.system_generated/

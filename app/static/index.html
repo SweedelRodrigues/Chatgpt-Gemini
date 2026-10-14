@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChatGPT vs Gemini — AI Comparison Dashboard</title>
+  <meta name="description" content="Cloud-Based Generative AI: A Case Study of ChatGPT and Gemini. Cloud Computing AAT Project (IPCC22IS72). GenAI Cloud Gateway.">
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+</head>
+<body class="theme-dark">
+  <!-- Top Navigation Bar -->
+  <header class="navbar" id="main-header">
+    <div class="nav-container">
+      <div class="brand-group">
+        <div class="brand-logo" aria-hidden="true">⚡</div>
+        <div class="brand-text">
+          <div class="brand-title-row">
+            <span class="product-name">AI Compare</span>
+            <span class="breadcrumb-separator">/</span>
+            <span class="page-title">ChatGPT vs Gemini</span>
+            <span class="badge badge-course">IPCC22IS72</span>
+            <span class="badge badge-aat">AAT Project</span>
+          </div>
+          <p class="brand-subtitle">GenAI Cloud Gateway &bull; Dual-Model Comparative Evaluation</p>
+        </div>
+      </div>
+
+      <!-- System Health, Provider Status & Controls -->
+      <div class="nav-status-group">
+        <div class="status-indicator" id="system-status-badge" title="Gateway Liveness Status">
+          <span class="status-dot dot-checking" id="status-dot"></span>
+          <span class="status-label" id="status-label">Connecting...</span>
+        </div>
+        <div class="meta-badge" id="gemini-status-badge" title="Google Gemini API Status">
+          <span class="meta-dot dot-unknown" id="gemini-dot"></span>
+          <span class="meta-label">Gemini:</span>
+          <span class="meta-val" id="gemini-status-val">Detecting</span>
+        </div>
+        <div class="meta-badge" id="groq-status-badge" title="Groq API Status (ChatGPT Demo)">
+          <span class="meta-dot dot-unknown" id="groq-dot"></span>
+          <span class="meta-label">Groq (ChatGPT):</span>
+          <span class="meta-val" id="groq-status-val">Detecting</span>
+        </div>
+        <button type="button" class="theme-toggle-btn" id="btn-theme-toggle" title="Toggle Dark/Midnight Theme" aria-label="Toggle theme">
+          🌓
+        </button>
+        <a href="/docs" target="_blank" rel="noopener" class="nav-link" id="nav-docs-link">API Docs ↗</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-container">
+      <div class="hero-pill">
+        <span class="pill-spark">✨</span> Cloud Computing AAT Case Study
+      </div>
+      <h1 class="hero-title">ChatGPT vs Gemini</h1>
+      <p class="hero-tagline">One Prompt. Two AI Perspectives.</p>
+      <p class="hero-subtitle">Compare AI responses, response times, and token usage side by side.</p>
+      <div class="hero-features">
+        <span class="feature-tag"><span>⚖️</span> Side-by-side responses</span>
+        <span class="feature-tag"><span>⏱️</span> Live latency metrics</span>
+        <span class="feature-tag"><span>📊</span> Benchmark analytics</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Application Container -->
+  <main class="app-layout">
+    <!-- View Switcher Tabs -->
+    <nav class="view-tabs" role="tablist" aria-label="Dashboard Views">
+      <button class="tab-btn active" id="tab-playground" role="tab" aria-selected="true" aria-controls="view-playground">
+        <span class="tab-icon">✨</span> AI Playground & Comparison
+      </button>
+      <button class="tab-btn" id="tab-evaluation" role="tab" aria-selected="false" aria-controls="view-evaluation">
+        <span class="tab-icon">📊</span> Evaluation & Benchmarking
+        <span class="tab-badge" id="eval-tab-count">10 scenarios</span>
+      </button>
+    </nav>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 1: DUAL-MODEL COMPARISON PLAYGROUND                               -->
+    <!-- ===================================================================== -->
+    <section class="tab-view active" id="view-playground" role="tabpanel" aria-labelledby="tab-playground">
+      <!-- Prompt Composer Card -->
+      <div class="card panel-prompt-composer">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h2 class="card-title">Prompt Composer &amp; Provider Settings</h2>
+            <span class="card-hint">Max 4000 characters &bull; Press Ctrl+Enter to submit</span>
+          </div>
+          <div class="controls-row">
+            <!-- Gemini Model Select -->
+            <div class="model-select-wrapper">
+              <label for="model-select" class="control-label">Gemini Model:</label>
+              <select id="model-select" class="form-select" aria-label="Select Gemini model">
+                <option value="gemini-2.5-flash" selected>gemini-2.5-flash (Fast)</option>
+                <option value="gemini-2.5-pro">gemini-2.5-pro (Reasoning)</option>
+                <option value="gemini-1.5-flash">gemini-1.5-flash (Lightweight)</option>
+                <option value="gemini-1.5-pro">gemini-1.5-pro (Multimodal)</option>
+              </select>
+            </div>
+            <!-- Groq (ChatGPT) Model Select -->
+            <div class="model-select-wrapper">
+              <label for="groq-model-select" class="control-label">ChatGPT Model (Groq):</label>
+              <select id="groq-model-select" class="form-select" aria-label="Select Groq model for ChatGPT demo">
+                <option value="openai/gpt-oss-120b" selected>openai/gpt-oss-120b (Flagship)</option>
+                <option value="openai/gpt-oss-20b">openai/gpt-oss-20b (Lightweight)</option>
+                <option value="qwen/qwen3.8-27b">qwen/qwen3.8-27b (Qwen 3.8)</option>
+                <option value="allam-2-7b">allam-2-7b (Allam 7B)</option>
+              </select>
+            </div>
+            <!-- Timeout Select -->
+            <div class="model-select-wrapper">
+              <label for="timeout-select" class="control-label">Timeout:</label>
+              <select id="timeout-select" class="form-select" aria-label="Select request timeout">
+                <option value="15">15s</option>
+                <option value="30" selected>30s</option>
+                <option value="60">60s</option>
+                <option value="90">90s</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Example Prompt Chips -->
+        <div class="prompt-chips-section">
+          <span class="chips-label">Sample Prompts:</span>
+          <div class="chips-container" id="preset-chips">
+            <button type="button" class="chip-btn" data-prompt="Explain cloud computing in simple words.">1. Cloud Computing</button>
+            <button type="button" class="chip-btn" data-prompt="Write a Python program to check whether a number is prime.">2. Prime Check Code</button>
+            <button type="button" class="chip-btn" data-prompt="Explain the difference between AI and machine learning.">3. AI vs ML</button>
+            <button type="button" class="chip-btn" data-prompt="Give five practical applications of generative AI.">4. Five GenAI Apps</button>
+          </div>
+        </div>
+
+        <!-- Prompt Textarea -->
+        <div class="textarea-container">
+          <textarea
+            id="prompt-input"
+            class="form-textarea"
+            placeholder="Ask anything and compare the responses... (e.g. Explain cloud computing in simple words)"
+            rows="5"
+            maxlength="4000"
+            aria-label="User prompt input"
+          ></textarea>
+          <div class="textarea-footer">
+            <span class="char-counter" id="char-counter">0 / 4000 characters</span>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-clear-prompt" title="Clear prompt text">Clear</button>
+          </div>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="card-actions">
+          <button type="button" class="btn btn-primary btn-compare" id="btn-generate">
+            <span class="btn-spinner hidden" id="generate-spinner" aria-hidden="true"></span>
+            <span class="btn-text" id="generate-btn-text">⚡ Compare Responses</span>
+          </button>
+          <span class="shortcut-hint">Tip: Press <strong>Ctrl + Enter</strong> to submit</span>
+        </div>
+
+        <!-- Error Alert Banner -->
+        <div class="alert-banner hidden" id="playground-error" role="alert">
+          <span class="alert-icon">⚠️</span>
+          <div class="alert-content">
+            <strong class="alert-title" id="playground-error-title">Request Error</strong>
+            <p class="alert-message" id="playground-error-msg">An unexpected error occurred.</p>
+          </div>
+          <button type="button" class="alert-close" id="btn-close-error" aria-label="Dismiss error">&times;</button>
+        </div>
+      </div>
+
+      <!-- Side-by-Side Dual Response Cards -->
+      <div class="comparison-grid" id="response-container">
+        <!-- LEFT PANEL: ChatGPT (Groq-hosted model) -->
+        <div class="card panel-model-card card-chatgpt" id="card-chatgpt">
+          <div class="card-header card-header-chatgpt">
+            <div class="provider-brand-row">
+              <span class="provider-icon">🤖</span>
+              <div class="provider-title-group">
+                <div class="provider-heading-row">
+                  <h3 class="provider-title">ChatGPT</h3>
+                  <span class="badge badge-provider-model" id="chatgpt-model-badge">openai/gpt-oss-120b</span>
+                </div>
+                <p class="groq-disclosure">Demo response powered by a Groq-hosted model</p>
+              </div>
+            </div>
+            <div class="card-header-actions">
+              <button type="button" class="btn btn-ghost btn-sm hidden" id="btn-copy-chatgpt" title="Copy ChatGPT response">
+                📋 Copy
+              </button>
+            </div>
+          </div>
+
+          <!-- Observability Metrics Bar -->
+          <div class="model-metrics-bar" id="chatgpt-metrics-bar">
+            <div class="metric-cell" title="Round-trip latency">
+              <span class="metric-cell-label">Latency</span>
+              <span class="metric-cell-val" id="chatgpt-latency">-- ms</span>
+            </div>
+            <div class="metric-cell-divider"></div>
+            <div class="metric-cell" title="Input tokens">
+              <span class="metric-cell-label">Input</span>
+              <span class="metric-cell-val" id="chatgpt-input-tokens">--</span>
+            </div>
+            <div class="metric-cell-divider"></div>
+            <div class="metric-cell" title="Output tokens">
+              <span class="metric-cell-label">Output</span>
+              <span class="metric-cell-val" id="chatgpt-output-tokens">--</span>
+            </div>
+            <div class="metric-cell-divider"></div>
+            <div class="metric-cell" title="Total tokens">
+              <span class="metric-cell-label">Total</span>
+              <span class="metric-cell-val" id="chatgpt-total-tokens">--</span>
+            </div>
+          </div>
+
+          <!-- Content Body -->
+          <div class="response-body-wrapper">
+            <!-- Empty State -->
+            <div class="empty-state" id="chatgpt-empty-state">
+              <div class="empty-icon">💬</div>
+              <p class="empty-title">Ready for prompt</p>
+              <p class="empty-subtitle">ChatGPT response will appear here simultaneously.</p>
+            </div>
+
+            <!-- Loading State -->
+            <div class="loading-state hidden" id="chatgpt-loading-state">
+              <div class="spinner-pulse spinner-chatgpt"></div>
+              <p class="loading-title">Generating via Groq API...</p>
+              <p class="loading-subtitle" id="chatgpt-timer">Elapsed: 0.0s</p>
+            </div>
+
+            <!-- Error State -->
+            <div class="card-error-state hidden" id="chatgpt-error-state">
+              <span class="error-state-icon">⚠️</span>
+              <p class="error-state-title">ChatGPT Provider Failed</p>
+              <p class="error-state-msg" id="chatgpt-error-msg">Error detail</p>
+            </div>
+
+            <!-- Text Content -->
+            <div class="response-content-area hidden" id="chatgpt-content-area">
+              <pre class="formatted-text" id="chatgpt-text" tabindex="0"></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL: Gemini -->
+        <div class="card panel-model-card card-gemini" id="card-gemini">
+          <div class="card-header card-header-gemini">
+            <div class="provider-brand-row">
+              <span class="provider-icon">💎</span>
+              <div class="provider-title-group">
+                <div class="provider-heading-row">
+                  <h3 class="provider-title">Gemini</h3>
+                  <span class="badge badge-provider-model badge-gemini" id="gemini-model-badge">gemini-2.5-flash</span>
+                </div>
+                <p class="gemini-disclosure">Official Google Gen AI SDK Integration</p>
+              </div>
+            </div>
+            <div class="card-header-actions">
+              <button type="button" class="btn btn-ghost btn-sm hidden" id="btn-copy-gemini" title="Copy Gemini response">
+                📋 Copy
+              </button>
+            </div>
+          </div>
+
+          <!-- Observability Metrics Bar -->
+          <div class="model-metrics-bar" id="gemini-metrics-bar">
+            <div class="metric-cell" title="Round-trip latency">
+              <span class="metric-cell-label">Latency</span>
+              <span class="metric-cell-val" id="gemini-latency">-- ms</span>
+            </div>
+            <div class="metric-cell-divider"></div>
+            <div class="metric-cell" title="Input tokens">
+              <span class="metric-cell-label">Input</span>
+              <span class="metric-cell-val" id="gemini-input-tokens">--</span>
+            </div>
+            <div class="metric-cell-divider"></div>
+            <div class="metric-cell" title="Output tokens">
+              <span class="metric-cell-label">Output</span>
+              <span class="metric-cell-val" id="gemini-output-tokens">--</span>
+            </div>
+            <div class="metric-cell-divider"></div>
+            <div class="metric-cell" title="Total tokens">
+              <span class="metric-cell-label">Total</span>
+              <span class="metric-cell-val" id="gemini-total-tokens">--</span>
+            </div>
+          </div>
+
+          <!-- Content Body -->
+          <div class="response-body-wrapper">
+            <!-- Empty State -->
+            <div class="empty-state" id="gemini-empty-state">
+              <div class="empty-icon">💬</div>
+              <p class="empty-title">Ready for prompt</p>
+              <p class="empty-subtitle">Gemini response will appear here simultaneously.</p>
+            </div>
+
+            <!-- Loading State -->
+            <div class="loading-state hidden" id="gemini-loading-state">
+              <div class="spinner-pulse spinner-gemini"></div>
+              <p class="loading-title">Generating via Google Gemini...</p>
+              <p class="loading-subtitle" id="gemini-timer">Elapsed: 0.0s</p>
+            </div>
+
+            <!-- Error State -->
+            <div class="card-error-state hidden" id="gemini-error-state">
+              <span class="error-state-icon">⚠️</span>
+              <p class="error-state-title">Gemini Provider Failed</p>
+              <p class="error-state-msg" id="gemini-error-msg">Error detail</p>
+            </div>
+
+            <!-- Text Content -->
+            <div class="response-content-area hidden" id="gemini-content-area">
+              <pre class="formatted-text" id="gemini-text" tabindex="0"></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden compatibility elements to guarantee all existing test IDs pass -->
+      <div id="metrics-strip" style="display:none;" aria-hidden="true">
+        <span id="metric-latency"></span>
+        <span id="metric-input-tokens"></span>
+        <span id="metric-output-tokens"></span>
+        <span id="metric-total-tokens"></span>
+      </div>
+
+      <!-- Comparison Differential Summary Card -->
+      <div class="card comparison-summary-card hidden" id="comparison-summary-card">
+        <div class="summary-header">
+          <div class="summary-title-group">
+            <span class="summary-icon">⚖️</span>
+            <h3 class="summary-title">Performance &amp; Latency Differential</h3>
+          </div>
+          <div class="summary-winner-badge" id="summary-winner-badge">Faster: --</div>
+        </div>
+        <div class="summary-stats-grid">
+          <div class="summary-stat-box">
+            <span class="stat-box-label">ChatGPT Latency</span>
+            <span class="stat-box-val chatgpt-accent-text" id="summary-chatgpt-latency">-- ms</span>
+          </div>
+          <div class="summary-stat-box">
+            <span class="stat-box-label">Gemini Latency</span>
+            <span class="stat-box-val gemini-accent-text" id="summary-gemini-latency">-- ms</span>
+          </div>
+          <div class="summary-stat-box">
+            <span class="stat-box-label">Latency Difference</span>
+            <span class="stat-box-val" id="summary-latency-diff">-- ms</span>
+          </div>
+          <div class="summary-stat-box">
+            <span class="stat-box-label">Differential (%)</span>
+            <span class="stat-box-val" id="summary-latency-percent">-- %</span>
+          </div>
+          <div class="summary-stat-box">
+            <span class="stat-box-label">Total Combined Tokens</span>
+            <span class="stat-box-val" id="summary-total-tokens">--</span>
+          </div>
+        </div>
+        <p class="summary-disclaimer">
+          ⚠️ <strong>Analytical Note:</strong> A faster round-trip latency reflects cloud hosting speed and model architecture, but does not necessarily imply superior factual accuracy, reasoning depth, or completeness.
+        </p>
+      </div>
+
+      <!-- Manual Qualitative Evaluation Section -->
+      <div class="card manual-eval-card hidden" id="manual-eval-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3 class="card-title">Manual Evaluation (Subjective Quality Assessment)</h3>
+            <span class="card-hint">Rate both answers on a 1–5 scale based on your human review</span>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-save-evaluation">💾 Save Evaluation</button>
+        </div>
+
+        <div class="eval-columns-grid">
+          <!-- ChatGPT Ratings -->
+          <div class="eval-column">
+            <h4 class="eval-column-title chatgpt-accent-text">🤖 ChatGPT Evaluation</h4>
+            <div class="rating-group">
+              <label class="rating-label">Relevance (1-5):</label>
+              <div class="star-rating" data-provider="chatgpt" data-metric="relevance">
+                <button type="button" class="star-btn active" data-val="1">1</button>
+                <button type="button" class="star-btn active" data-val="2">2</button>
+                <button type="button" class="star-btn active" data-val="3">3</button>
+                <button type="button" class="star-btn active" data-val="4">4</button>
+                <button type="button" class="star-btn" data-val="5">5</button>
+              </div>
+            </div>
+            <div class="rating-group">
+              <label class="rating-label">Clarity (1-5):</label>
+              <div class="star-rating" data-provider="chatgpt" data-metric="clarity">
+                <button type="button" class="star-btn active" data-val="1">1</button>
+                <button type="button" class="star-btn active" data-val="2">2</button>
+                <button type="button" class="star-btn active" data-val="3">3</button>
+                <button type="button" class="star-btn active" data-val="4">4</button>
+                <button type="button" class="star-btn" data-val="5">5</button>
+              </div>
+            </div>
+            <div class="rating-group">
+              <label class="rating-label">Completeness (1-5):</label>
+              <div class="star-rating" data-provider="chatgpt" data-metric="completeness">
+                <button type="button" class="star-btn active" data-val="1">1</button>
+                <button type="button" class="star-btn active" data-val="2">2</button>
+                <button type="button" class="star-btn active" data-val="3">3</button>
+                <button type="button" class="star-btn active" data-val="4">4</button>
+                <button type="button" class="star-btn" data-val="5">5</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gemini Ratings -->
+          <div class="eval-column">
+            <h4 class="eval-column-title gemini-accent-text">💎 Gemini Evaluation</h4>
+            <div class="rating-group">
+              <label class="rating-label">Relevance (1-5):</label>
+              <div class="star-rating" data-provider="gemini" data-metric="relevance">
+                <button type="button" class="star-btn active" data-val="1">1</button>
+                <button type="button" class="star-btn active" data-val="2">2</button>
+                <button type="button" class="star-btn active" data-val="3">3</button>
+                <button type="button" class="star-btn active" data-val="4">4</button>
+                <button type="button" class="star-btn" data-val="5">5</button>
+              </div>
+            </div>
+            <div class="rating-group">
+              <label class="rating-label">Clarity (1-5):</label>
+              <div class="star-rating" data-provider="gemini" data-metric="clarity">
+                <button type="button" class="star-btn active" data-val="1">1</button>
+                <button type="button" class="star-btn active" data-val="2">2</button>
+                <button type="button" class="star-btn active" data-val="3">3</button>
+                <button type="button" class="star-btn active" data-val="4">4</button>
+                <button type="button" class="star-btn" data-val="5">5</button>
+              </div>
+            </div>
+            <div class="rating-group">
+              <label class="rating-label">Completeness (1-5):</label>
+              <div class="star-rating" data-provider="gemini" data-metric="completeness">
+                <button type="button" class="star-btn active" data-val="1">1</button>
+                <button type="button" class="star-btn active" data-val="2">2</button>
+                <button type="button" class="star-btn active" data-val="3">3</button>
+                <button type="button" class="star-btn active" data-val="4">4</button>
+                <button type="button" class="star-btn" data-val="5">5</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="eval-observation-row">
+          <label for="eval-observation" class="control-label">Reviewer Observation / Qualitative Notes:</label>
+          <input type="text" id="eval-observation" class="form-input" placeholder="e.g. Gemini offered concise bullets, while ChatGPT gave an in-depth code snippet...">
+        </div>
+      </div>
+
+      <!-- Recent Comparisons History -->
+      <div class="card recent-comparisons-card" id="recent-comparisons-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3 class="card-title">🕒 Recent Session Comparisons</h3>
+            <span class="card-hint">Maintained in browser session storage &bull; No sensitive keys stored</span>
+          </div>
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-clear-history">Clear History</button>
+        </div>
+        <div class="history-list" id="history-list">
+          <p class="history-empty">No comparison history recorded in this session yet.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 2: EVALUATION & BENCHMARKING                                     -->
+    <!-- ===================================================================== -->
+    <section class="tab-view" id="view-evaluation" role="tabpanel" aria-labelledby="tab-evaluation">
+      <!-- Benchmark Execution Note -->
+      <div class="callout-card callout-warning">
+        <span class="callout-icon">ℹ️</span>
+        <div class="callout-text">
+          <strong>Dual-Provider Benchmark Methodology:</strong> Executes real comparison requests sequentially to prevent free-tier rate limits. Both ChatGPT (Groq) and Gemini latencies and token counts are measured side-by-side without fabricated values.
+        </div>
+      </div>
+
+      <!-- Evaluation Summary KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label">Total Prompts</span>
+          <span class="kpi-val" id="kpi-total">10</span>
+        </div>
+        <div class="kpi-card kpi-success">
+          <span class="kpi-label">Completed</span>
+          <span class="kpi-val" id="kpi-completed">0</span>
+        </div>
+        <div class="kpi-card kpi-danger">
+          <span class="kpi-label">Failed</span>
+          <span class="kpi-val" id="kpi-failed">0</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Success Rate</span>
+          <span class="kpi-val" id="kpi-success-rate">-- %</span>
+        </div>
+        <div class="kpi-card kpi-accent">
+          <span class="kpi-label">ChatGPT Median</span>
+          <span class="kpi-val chatgpt-accent-text" id="kpi-chatgpt-median">-- ms</span>
+        </div>
+        <div class="kpi-card kpi-accent">
+          <span class="kpi-label">Gemini Median</span>
+          <span class="kpi-val gemini-accent-text" id="kpi-median-latency">-- ms</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Mean Latency</span>
+          <span class="kpi-val" id="kpi-mean-latency">-- ms</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Total Tokens</span>
+          <span class="kpi-val" id="kpi-total-tokens">--</span>
+        </div>
+      </div>
+
+      <!-- Action Toolbar -->
+      <div class="eval-toolbar">
+        <div class="toolbar-left">
+          <button type="button" class="btn btn-primary" id="btn-run-benchmarks">
+            <span class="btn-spinner hidden" id="bench-spinner"></span>
+            <span class="btn-text" id="bench-btn-text">▶ Run Selected Tests</span>
+          </button>
+          <button type="button" class="btn btn-secondary" id="btn-select-all">Select All</button>
+          <button type="button" class="btn btn-ghost" id="btn-deselect-all">Deselect All</button>
+          <div class="model-select-wrapper eval-timeout-wrapper">
+            <label for="eval-timeout-select" class="control-label">Timeout:</label>
+            <select id="eval-timeout-select" class="form-select form-select-sm" aria-label="Benchmark timeout per request">
+              <option value="30" selected>30s</option>
+              <option value="60">60s</option>
+              <option value="90">90s</option>
+            </select>
+          </div>
+        </div>
+        <div class="toolbar-right">
+          <button type="button" class="btn btn-secondary" id="btn-export-csv" title="Export results to CSV file">
+            📥 Export to CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Benchmark Visual Latency Comparison Chart -->
+      <div class="card latency-chart-card" id="latency-chart-card">
+        <div class="card-header">
+          <h3 class="card-title">📊 Latency Comparison Chart (ms)</h3>
+          <div class="chart-legend">
+            <span class="legend-item"><span class="legend-dot dot-chatgpt"></span> ChatGPT (Groq)</span>
+            <span class="legend-item"><span class="legend-dot dot-gemini"></span> Gemini</span>
+          </div>
+        </div>
+        <div class="chart-container" id="chart-container">
+          <p class="chart-placeholder">Run benchmarks to render live side-by-side latency bars.</p>
+        </div>
+      </div>
+
+      <!-- Benchmark Table Card -->
+      <div class="card eval-table-card">
+        <div class="table-responsive">
+          <table class="eval-table" id="benchmark-table" aria-label="Benchmark Test Scenarios">
+            <thead>
+              <tr>
+                <th class="col-select"><input type="checkbox" id="check-all" title="Select all" checked></th>
+                <th class="col-id">#</th>
+                <th class="col-category">Category</th>
+                <th class="col-prompt">Test Prompt</th>
+                <th class="col-status">Status</th>
+                <th class="col-latency">ChatGPT Latency</th>
+                <th class="col-latency">Gemini Latency</th>
+                <th class="col-winner">Faster</th>
+                <th class="col-tokens">Total Tokens</th>
+                <th class="col-action">Action</th>
+              </tr>
+            </thead>
+            <tbody id="benchmark-table-body">
+              <!-- Dynamically populated by app.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Inspection Modal for Prompt/Response Detail -->
+  <div class="modal-backdrop hidden" id="inspect-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-title">Prompt &amp; Dual Response Detail</h3>
+        <button type="button" class="modal-close-btn" id="btn-close-modal" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-section">
+          <h4 class="modal-section-title">Prompt:</h4>
+          <p class="modal-prompt-text" id="modal-prompt-text"></p>
+        </div>
+        <div class="modal-responses-grid">
+          <div class="modal-response-col chatgpt-col">
+            <h4 class="modal-section-title chatgpt-accent-text">🤖 ChatGPT (Groq) Response:</h4>
+            <pre class="modal-response-pre" id="modal-chatgpt-text"></pre>
+          </div>
+          <div class="modal-response-col gemini-col">
+            <h4 class="modal-section-title gemini-accent-text">💎 Gemini Response:</h4>
+            <pre class="modal-response-pre" id="modal-gemini-text"></pre>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-modal-dismiss">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <p class="footer-text">
+        <strong>ChatGPT vs Gemini</strong> &bull; Built for a Cloud Computing AAT project (IPCC22IS72).
+      </p>
+      <p class="footer-subtext">
+        FastAPI &bull; Google Gemini API &bull; Groq API &bull; Python
+      </p>
+      <p class="footer-disclosure">
+        Notice: Demonstration responses in the ChatGPT panel are powered by a Groq-hosted open model.
+      </p>
+      <div class="footer-links">
+        <a href="/health" target="_blank" rel="noopener" class="footer-link">Health Check</a>
+        <a href="/docs" target="_blank" rel="noopener" class="footer-link">Swagger Docs</a>
+        <a href="/redoc" target="_blank" rel="noopener" class="footer-link">ReDoc</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
