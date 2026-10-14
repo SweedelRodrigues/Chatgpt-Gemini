@@ -345,12 +345,150 @@ document.addEventListener("DOMContentLoaded", () => {
     chatgptModelBadge.textContent = groqModelSelect.value;
   });
 
+  // Raw markdown strings preserved for plain-text copying (Requirement 6)
+  let currentChatgptRawMarkdown = "";
+  let currentGeminiRawMarkdown = "";
+
   // =============================================================================
-  // Safe Text Rendering Helper
+  // Secure Markdown Rendering & Sanitization (Marked.js + DOMPurify)
   // =============================================================================
 
-  function setSafeText(targetElement, text) {
-    targetElement.textContent = text || "";
+  // Security Hook: Force target="_blank" and rel="noopener noreferrer" on all external anchor links
+  if (typeof DOMPurify !== "undefined" && DOMPurify.addHook) {
+    DOMPurify.addHook("afterSanitizeAttributes", function (node) {
+      if (node.tagName === "A" && node.hasAttribute("href")) {
+        node.setAttribute("target", "_blank");
+        node.setAttribute("rel", "noopener noreferrer");
+      }
+    });
+  }
+
+  /**
+   * Safely parses Markdown into sanitized HTML using Marked.js and DOMPurify.
+   * Prevents XSS, script execution, event handlers, and malicious URIs.
+   */
+  function renderMarkdownSafely(markdownText) {
+    if (!markdownText) return "";
+    const rawText = String(markdownText);
+
+    // 1. Parse markdown syntax
+    let rawHtml = "";
+    if (typeof marked !== "undefined" && marked.parse) {
+      rawHtml = marked.parse(rawText, {
+        gfm: true,
+        breaks: true,
+        pedantic: false,
+      });
+    } else {
+      return escapeHtml(rawText);
+    }
+
+    // 2. Strict HTML sanitization
+    if (typeof DOMPurify !== "undefined" && DOMPurify.sanitize) {
+      const cleanHtml = DOMPurify.sanitize(rawHtml, {
+        USE_PROFILES: { html: true },
+        ALLOWED_TAGS: [
+          "h1", "h2", "h3", "h4", "h5", "h6",
+          "p", "br", "hr",
+          "strong", "b", "em", "i", "del", "s", "strike",
+          "ul", "ol", "li",
+          "blockquote",
+          "code", "pre", "kbd", "samp",
+          "table", "thead", "tbody", "tfoot", "tr", "th", "td",
+          "a", "span", "div"
+        ],
+        ALLOWED_ATTR: ["href", "title", "target", "rel", "class"],
+        ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+        FORBID_TAGS: ["script", "style", "iframe", "frame", "object", "embed", "form", "input", "button", "textarea", "select"],
+        FORBID_ATTR: ["onerror", "onload", "onclick", "onmouseover", "onfocus", "onblur", "style"],
+      });
+      return cleanHtml;
+    }
+
+    return escapeHtml(rawText);
+  }
+
+  /**
+   * Post-processes rendered markdown container:
+   * - Syntax highlights code blocks with highlight.js
+   * - Adds language badge and 'Copy Code' button to code blocks
+   * - Wraps tables in .table-wrapper for responsive horizontal scrolling
+   */
+  function postProcessMarkdownContainer(containerElement) {
+    if (!containerElement) return;
+
+    // Process code blocks
+    const codeBlocks = containerElement.querySelectorAll("pre code");
+    codeBlocks.forEach((codeEl) => {
+      const pre = codeEl.parentElement;
+      if (!pre || pre.parentElement?.classList.contains("code-block-container")) {
+        return;
+      }
+
+      // Syntax highlight
+      if (typeof hljs !== "undefined" && hljs.highlightElement) {
+        try {
+          hljs.highlightElement(codeEl);
+        } catch (e) {
+          // Ignore highlight failure on custom tokens
+        }
+      }
+
+      // Language detection
+      let langName = "code";
+      const classMatch = (codeEl.className || "").match(/language-([a-zA-Z0-9_\-#+]+)/);
+      if (classMatch && classMatch[1]) {
+        langName = classMatch[1];
+      }
+
+      // Build code block container with header and copy button
+      const wrapper = document.createElement("div");
+      wrapper.className = "code-block-container";
+
+      const header = document.createElement("div");
+      header.className = "code-block-header";
+
+      const langTag = document.createElement("span");
+      langTag.className = "code-lang-tag";
+      langTag.textContent = langName;
+
+      const copyBtn = document.createElement("button");
+      copyBtn.type = "button";
+      copyBtn.className = "btn-copy-code";
+      copyBtn.setAttribute("title", "Copy code snippet");
+      copyBtn.innerHTML = "<span>📋</span> Copy";
+
+      copyBtn.addEventListener("click", () => {
+        copyTextWithFeedback(copyBtn, codeEl.textContent || "");
+      });
+
+      header.appendChild(langTag);
+      header.appendChild(copyBtn);
+
+      pre.parentNode.insertBefore(wrapper, pre);
+      wrapper.appendChild(header);
+      wrapper.appendChild(pre);
+    });
+
+    // Wrap tables in responsive wrapper
+    const tables = containerElement.querySelectorAll("table");
+    tables.forEach((table) => {
+      if (table.parentElement?.classList.contains("table-wrapper")) return;
+      const wrapper = document.createElement("div");
+      wrapper.className = "table-wrapper";
+      table.parentNode.insertBefore(wrapper, table);
+      wrapper.appendChild(table);
+    });
+  }
+
+  /**
+   * Renders sanitized Markdown into target DOM element and attaches code block interactive enhancements.
+   */
+  function renderResponseToPanel(targetElement, markdownText) {
+    if (!targetElement) return;
+    const cleanHtml = renderMarkdownSafely(markdownText);
+    targetElement.innerHTML = cleanHtml;
+    postProcessMarkdownContainer(targetElement);
   }
 
   // =============================================================================
@@ -442,10 +580,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const data = await response.json();
 
-      // Render ChatGPT (Groq) Result
+      // Render ChatGPT (Groq) Result as Markdown
       chatgptLoadingState.classList.add("hidden");
       if (data.chatgpt && data.chatgpt.success) {
-        setSafeText(chatgptText, data.chatgpt.response_text);
+        currentChatgptRawMarkdown = data.chatgpt.response_text || "";
+        renderResponseToPanel(chatgptText, currentChatgptRawMarkdown);
         chatgptContentArea.classList.remove("hidden");
         btnCopyChatgpt.classList.remove("hidden");
         chatgptLatency.textContent = `${data.chatgpt.latency_ms} ms`;
@@ -453,14 +592,16 @@ document.addEventListener("DOMContentLoaded", () => {
         chatgptOutputTokens.textContent = data.chatgpt.output_tokens != null ? data.chatgpt.output_tokens : "--";
         chatgptTotalTokens.textContent = data.chatgpt.total_tokens != null ? data.chatgpt.total_tokens : "--";
       } else {
+        currentChatgptRawMarkdown = "";
         chatgptErrorState.classList.remove("hidden");
         chatgptErrorMsg.textContent = (data.chatgpt && data.chatgpt.error_message) || "ChatGPT provider request failed.";
       }
 
-      // Render Gemini Result
+      // Render Gemini Result as Markdown
       geminiLoadingState.classList.add("hidden");
       if (data.gemini && data.gemini.success) {
-        setSafeText(geminiText, data.gemini.response_text);
+        currentGeminiRawMarkdown = data.gemini.response_text || "";
+        renderResponseToPanel(geminiText, currentGeminiRawMarkdown);
         geminiContentArea.classList.remove("hidden");
         btnCopyGemini.classList.remove("hidden");
         geminiLatency.textContent = `${data.gemini.latency_ms} ms`;
@@ -468,6 +609,7 @@ document.addEventListener("DOMContentLoaded", () => {
         geminiOutputTokens.textContent = data.gemini.output_tokens != null ? data.gemini.output_tokens : "--";
         geminiTotalTokens.textContent = data.gemini.total_tokens != null ? data.gemini.total_tokens : "--";
       } else {
+        currentGeminiRawMarkdown = "";
         geminiErrorState.classList.remove("hidden");
         geminiErrorMsg.textContent = (data.gemini && data.gemini.error_message) || "Gemini provider request failed.";
       }
@@ -538,11 +680,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   btnCopyChatgpt.addEventListener("click", () => {
-    copyTextWithFeedback(btnCopyChatgpt, chatgptText.textContent);
+    // Copy the original plain-text Markdown response, not generated HTML (Requirement 6)
+    copyTextWithFeedback(btnCopyChatgpt, currentChatgptRawMarkdown || chatgptText.textContent || "");
   });
 
   btnCopyGemini.addEventListener("click", () => {
-    copyTextWithFeedback(btnCopyGemini, geminiText.textContent);
+    // Copy the original plain-text Markdown response, not generated HTML (Requirement 6)
+    copyTextWithFeedback(btnCopyGemini, currentGeminiRawMarkdown || geminiText.textContent || "");
   });
 
   // =============================================================================
@@ -647,16 +791,18 @@ document.addEventListener("DOMContentLoaded", () => {
         promptInput.value = item.prompt;
         updateCharCount();
 
-        // Restore views
+        // Restore views as Markdown
         if (item.chatgptSuccess) {
-          setSafeText(chatgptText, item.chatgptText);
+          currentChatgptRawMarkdown = item.chatgptText || "";
+          renderResponseToPanel(chatgptText, currentChatgptRawMarkdown);
           chatgptContentArea.classList.remove("hidden");
           chatgptEmptyState.classList.add("hidden");
           btnCopyChatgpt.classList.remove("hidden");
           chatgptLatency.textContent = `${item.chatgptLatency} ms`;
         }
         if (item.geminiSuccess) {
-          setSafeText(geminiText, item.geminiText);
+          currentGeminiRawMarkdown = item.geminiText || "";
+          renderResponseToPanel(geminiText, currentGeminiRawMarkdown);
           geminiContentArea.classList.remove("hidden");
           geminiEmptyState.classList.add("hidden");
           btnCopyGemini.classList.remove("hidden");
@@ -1102,6 +1248,41 @@ document.addEventListener("DOMContentLoaded", () => {
   function truncate(str, max) {
     if (!str) return "";
     return str.length > max ? str.substring(0, max) + "..." : str;
+  }
+
+  // =============================================================================
+  // Benchmark Inspection Modal
+  // =============================================================================
+
+  function showInspectModal(item) {
+    if (!inspectModal) return;
+    modalPromptText.textContent = item.prompt || "";
+
+    if (item.chatgptResponse) {
+      renderResponseToPanel(modalChatgptText, item.chatgptResponse);
+    } else {
+      modalChatgptText.textContent = item.chatgptError || "No response recorded.";
+    }
+
+    if (item.geminiResponse) {
+      renderResponseToPanel(modalGeminiText, item.geminiResponse);
+    } else {
+      modalGeminiText.textContent = item.geminiError || "No response recorded.";
+    }
+
+    inspectModal.classList.remove("hidden");
+  }
+
+  if (btnCloseModal) {
+    btnCloseModal.addEventListener("click", () => inspectModal.classList.add("hidden"));
+  }
+  if (btnModalDismiss) {
+    btnModalDismiss.addEventListener("click", () => inspectModal.classList.add("hidden"));
+  }
+  if (inspectModal) {
+    inspectModal.addEventListener("click", (e) => {
+      if (e.target === inspectModal) inspectModal.classList.add("hidden");
+    });
   }
 
   // Initialize

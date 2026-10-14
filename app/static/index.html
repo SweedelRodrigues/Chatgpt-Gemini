@@ -6,6 +6,7 @@
   <title>ChatGPT vs Gemini — AI Comparison Dashboard</title>
   <meta name="description" content="Cloud-Based Generative AI: A Case Study of ChatGPT and Gemini. Cloud Computing AAT Project (IPCC22IS72). GenAI Cloud Gateway.">
   <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/static/vendor/highlight-github-dark.min.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 </head>
 <body class="theme-dark">
@@ -242,7 +243,7 @@
 
             <!-- Text Content -->
             <div class="response-content-area hidden" id="chatgpt-content-area">
-              <pre class="formatted-text" id="chatgpt-text" tabindex="0"></pre>
+              <div class="formatted-markdown markdown-body" id="chatgpt-text" tabindex="0"></div>
             </div>
           </div>
         </div>
@@ -315,7 +316,7 @@
 
             <!-- Text Content -->
             <div class="response-content-area hidden" id="gemini-content-area">
-              <pre class="formatted-text" id="gemini-text" tabindex="0"></pre>
+              <div class="formatted-markdown markdown-body" id="gemini-text" tabindex="0"></div>
             </div>
           </div>
         </div>
@@ -597,11 +598,11 @@
         <div class="modal-responses-grid">
           <div class="modal-response-col chatgpt-col">
             <h4 class="modal-section-title chatgpt-accent-text">🤖 ChatGPT (Groq) Response:</h4>
-            <pre class="modal-response-pre" id="modal-chatgpt-text"></pre>
+            <div class="modal-response-body markdown-body" id="modal-chatgpt-text"></div>
           </div>
           <div class="modal-response-col gemini-col">
             <h4 class="modal-section-title gemini-accent-text">💎 Gemini Response:</h4>
-            <pre class="modal-response-pre" id="modal-gemini-text"></pre>
+            <div class="modal-response-body markdown-body" id="modal-gemini-text"></div>
           </div>
         </div>
       </div>
@@ -631,6 +632,10 @@
     </div>
   </footer>
 
+  <!-- Markdown Rendering, Sanitization & Syntax Highlighting -->
+  <script src="/static/vendor/marked.min.js"></script>
+  <script src="/static/vendor/purify.min.js"></script>
+  <script src="/static/vendor/highlight.min.js"></script>
   <script src="/static/app.js"></script>
 </body>
 </html>
