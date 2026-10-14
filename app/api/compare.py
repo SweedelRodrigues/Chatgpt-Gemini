@@ -87,9 +87,9 @@ async def compare_models(
     )
 
     # Process Gemini result
-    if isinstance(gemini_res, Exception):
+    if isinstance(gemini_res, BaseException):
         logger.warning("Gemini comparison request failed: %s", type(gemini_res).__name__)
-        err_msg = getattr(gemini_res, "message", str(gemini_res))
+        err_msg = getattr(gemini_res, "message", None) or str(gemini_res) or type(gemini_res).__name__
         gemini_result = ProviderResult(
             provider="Gemini",
             model=target_gemini_model,
@@ -117,9 +117,9 @@ async def compare_models(
         )
 
     # Process Groq (ChatGPT) result
-    if isinstance(groq_res, Exception):
+    if isinstance(groq_res, BaseException):
         logger.warning("Groq comparison request failed: %s", type(groq_res).__name__)
-        err_msg = getattr(groq_res, "message", str(groq_res))
+        err_msg = getattr(groq_res, "message", None) or str(groq_res) or type(groq_res).__name__
         chatgpt_result = ProviderResult(
             provider="ChatGPT (Groq)",
             model=target_groq_model,

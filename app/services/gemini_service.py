@@ -193,24 +193,57 @@ class GeminiService:
             code = getattr(exc, "code", None)
             err_str = str(exc).lower()
             logger.warning(
-                "Gemini APIError encountered: code=%s, type=%s",
+                "Gemini APIError encountered: code=%s, type=%s, message=%s",
                 code,
                 type(exc).__name__,
+                getattr(exc, "message", str(exc)),
             )
 
-            if code == 429 or "resource_exhausted" in err_str or "quota" in err_str:
-                raise GeminiRateLimitError() from exc
-            elif (
-                code in (401, 403)
-                or "api_key_invalid" in err_str
-                or "invalid api key" in err_str
-                or "unauthenticated" in err_str
+            # Check if we should attempt automatic fallback to high-quota gemini-2.5-flash-lite
+            response = None
+            if target_model != "gemini-2.5-flash-lite" and (
+                code in (429, 404, 503)
+                or "quota" in err_str
+                or "resource_exhausted" in err_str
+                or "not found" in err_str
+                or "no longer available" in err_str
             ):
-                raise GeminiAuthError() from exc
-            elif code == 504 or "deadline_exceeded" in err_str or "timed out" in err_str:
-                raise GeminiTimeoutError(timeout_seconds=effective_timeout) from exc
-            else:
-                raise GeminiProviderError() from exc
+                fallback_model = "gemini-2.5-flash-lite"
+                logger.warning(
+                    "Model '%s' failed (code=%s). Attempting automatic fallback to '%s'.",
+                    target_model,
+                    code,
+                    fallback_model,
+                )
+                try:
+                    fb_coro = active_client.aio.models.generate_content(
+                        model=fallback_model,
+                        contents=prompt,
+                    )
+                    if effective_timeout and effective_timeout > 0:
+                        response = await asyncio.wait_for(fb_coro, timeout=effective_timeout)
+                    else:
+                        response = await fb_coro
+                    target_model = fallback_model
+                except Exception as fb_exc:
+                    logger.error("Fallback to '%s' failed: %s", fallback_model, fb_exc)
+                    response = None
+
+            if response is None:
+                if code == 429 or "resource_exhausted" in err_str or "quota" in err_str:
+                    clean_msg = "Gemini quota or rate limit exceeded on this model. Try selecting 'gemini-2.5-flash-lite' in the model dropdown."
+                    raise GeminiRateLimitError(message=clean_msg) from exc
+                elif (
+                    code in (401, 403)
+                    or "api_key_invalid" in err_str
+                    or "invalid api key" in err_str
+                    or "unauthenticated" in err_str
+                ):
+                    raise GeminiAuthError() from exc
+                elif code == 504 or "deadline_exceeded" in err_str or "timed out" in err_str:
+                    raise GeminiTimeoutError(timeout_seconds=effective_timeout) from exc
+                else:
+                    raise GeminiProviderError() from exc
 
         except Exception as exc:
             logger.error("Unexpected error in Gemini service: %s", type(exc).__name__)

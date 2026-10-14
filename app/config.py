@@ -20,7 +20,7 @@ class Settings(BaseSettings):
 
     # Gemini API Credentials
     gemini_api_key: Optional[str] = None
-    default_model: str = "gemini-2.5-flash"
+    default_model: str = "gemini-2.5-flash-lite"
 
     # Groq API Credentials (powers the ChatGPT-labelled demo panel)
     groq_api_key: Optional[str] = None
